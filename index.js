@@ -1,9 +1,11 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const swaggerJSdoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
+const db = require('./config/DB/db');
 
-const { host, port } = require('./config/index');
+const { host, port, MONGODB_URI } = require('./config/index');
 
 const swaggerDefinition = {
     openapi: "3.0.0",
@@ -39,6 +41,9 @@ const options = {
 
 const specs = swaggerJSdoc(options);
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors());
 
 app.use('/api-docs', swaggerUI.serve);
@@ -47,6 +52,7 @@ app.get("/api-docs", swaggerUI.setup(specs, { explorer: true, swaggerOptions: op
 
 app.use(require('./routes/index'));
 
-app.listen(port, () => {
+app.listen(port, async () => {
+    await db(MONGODB_URI);
     console.log(`Server running on: http://${host}:${port}`);
 });
